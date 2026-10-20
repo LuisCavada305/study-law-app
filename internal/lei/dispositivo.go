@@ -33,3 +33,11 @@ func (t Tipo) String() string {
 		return fmt.Sprintf("Tipo(%d)", int(t))
 	}
 }
+
+// Dispositivo representa um dispositivo contendo um tipo Tipo, Rotulo, Texto e Filhos.
+type Dispositivo struct {
+	Tipo   Tipo
+	Rotulo string
+	Texto  string
+	Filhos []*Dispositivo
+}

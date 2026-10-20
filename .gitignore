@@ -1,0 +1,3 @@
+# binários gerados por go build
+/leiseca-parse
+*.exe
