@@ -1,18 +1,27 @@
 package lei
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestTipoString(t *testing.T) {
 	testes := []struct {
 		tipo     Tipo
 		esperado string
 	}{
+		{Parte, "Parte"},
+		{Livro, "Livro"},
+		{Titulo, "Título"},
+		{Capitulo, "Capítulo"},
+		{Secao, "Seção"},
+		{Subsecao, "Subseção"},
 		{Artigo, "Artigo"},
-		{Paragrafo, "Paragrafo"},
+		{Paragrafo, "Parágrafo"},
 		{Inciso, "Inciso"},
-		{Alinea, "Alinea"},
+		{Alinea, "Alínea"},
 		{Item, "Item"},
-		{10, "Tipo(10)"},
+		{Item + 1, fmt.Sprintf("Tipo(%d)", Item+1)},
 		{0, "Tipo(0)"},
 	}
 
@@ -20,6 +29,31 @@ func TestTipoString(t *testing.T) {
 		t.Run(tc.esperado, func(t *testing.T) {
 			if got := tc.tipo.String(); got != tc.esperado {
 				t.Errorf("Tipo(%d).String() = %q; esperado %q", tc.tipo, got, tc.esperado)
+			}
+		})
+	}
+}
+
+// Os casos cobrem as bordas da faixa [Parte, Subsecao] e os inválidos
+// dos dois lados, onde um < trocado por <= apareceria.
+func TestTipoAgrupador(t *testing.T) {
+	testes := []struct {
+		tipo     Tipo
+		esperado bool
+	}{
+		{0, false},
+		{Parte, true},
+		{Titulo, true},
+		{Subsecao, true},
+		{Artigo, false},
+		{Item, false},
+		{Item + 1, false},
+	}
+
+	for _, tc := range testes {
+		t.Run(tc.tipo.String(), func(t *testing.T) {
+			if got := tc.tipo.Agrupador(); got != tc.esperado {
+				t.Errorf("Tipo(%d).Agrupador() = %v; esperado %v", tc.tipo, got, tc.esperado)
 			}
 		})
 	}
