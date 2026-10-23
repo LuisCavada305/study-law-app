@@ -1,3 +1,8 @@
 # binários gerados por go build
 /leiseca-parse
 *.exe
+/bin/
+# banco local (SQLite e arquivos do modo WAL)
+*.db
+*.db-wal
+*.db-shm

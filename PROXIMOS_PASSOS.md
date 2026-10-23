@@ -8,7 +8,7 @@
 - Repo privado: https://github.com/LuisCavada305/study-law-app
 - Amostras brutas em `internal/lei/testdata/` (`cf88.html`, `cp.html`, baixadas em 20/10/2026, **ainda sem commit**)
 
-## Marco 1 concluído em 22/10/2026
+## Marco 1 concluído em 22/10/2026 — parser
 
 ```bash
 go run ./cmd/leiseca-parse https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm
@@ -25,11 +25,35 @@ go run ./cmd/leiseca-parse -json internal/lei/testdata/cf88.html > cf88.json
 - Teste com o site real (22/10/2026): CF com 2749 nós até o art. 250; CP com 1455
   nós até o art. 361
 
+## Marco 2 concluído em 22/10/2026 — app de estudo
+
+Decisões (o Luis deixou a meu critério):
+- **Card** = dispositivo normativo em vigor com texto (artigo, parágrafo, inciso,
+  alínea). Frente: referência ("Art. 121, § 2º, inciso I"), caminho dos agrupadores,
+  rubrica (herdada do ancestral mais próximo) e texto do pai como contexto. Verso: texto.
+  Método: recitar de memória e conferir
+- **SM-2** (`internal/estudo`): Errei volta em 10 min; Bom dá 1 → 6 → ×2,5 dias;
+  20 novos por dia (`-novos`). Card errado há pouco aparece antes da hora se a fila acabou
+- **SQLite** com `modernc.org/sqlite` (sem cgo). Datas em segundos Unix. Árvore guardada
+  em JSON na tabela `leis`, para a tela de leitura
+- **Reimportação** pela chave (`art121/par2/incI`): progresso mantido, texto atualizado,
+  cards que sumiram ficam inativos. Rótulo repetido na lei ganha `#2`
+- **API** só com `net/http`; importação restrita a planalto.gov.br; servidor em 127.0.0.1
+- **Frontend** em `frontend/` (como no ROTA): telas Leis, Estudo e Leitura
+- Ajuste no parser: linha "Pena - …" volta ao artigo/parágrafo (antes ia para o último inciso)
+
+Testado com o site real: CF = 2613 cards, CP = 1310 cards.
+
 ## Ao retomar
 
-1. **Commit** de tudo (Marco 1 inteiro está sem commit).
-2. **Definir o Marco 2**: cards (o que vira card, formato pergunta/resposta),
-   onde guardar (SQLite?), API em Go e front em React + Vite.
+Ideias, em ordem de valor:
+1. **Modo lacuna**: esconder palavras-chave do texto ("Matar alguem: Pena - ___, de
+   ___ a ___ anos") em vez de recitar tudo
+2. **Mais leis**: testar CPP, CC, CPC, CLT pelo formulário; cada uma deve trazer
+   padrões novos (fazer fixtures como as da CF/CP)
+3. **Estatísticas**: a tabela `revisoes` já tem o histórico (acertos por lei, dias seguidos)
+4. **Busca** na leitura e "estudar este artigo agora" a partir dela
+5. **Deploy** (VPS ou Docker, como no ROTA): precisa de login antes de abrir para a rede
 
 ## Fase 1 — regras (tiradas das amostras)
 - Negrito da linha = primeiro trecho com texto (89 rubricas do CP vêm seguidas de

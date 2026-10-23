@@ -199,6 +199,11 @@ func maiusculas(s string) bool {
 	return strings.ContainsFunc(s, unicode.IsLetter) && strings.ToUpper(s) == s
 }
 
+// rePena casa a linha da pena ("Pena - reclusão…"), o preceito secundário
+// do tipo penal. Ela vale para o artigo ou parágrafo inteiro, não para o
+// último inciso antes dela.
+var rePena = regexp.MustCompile(`^Pena\s*[-–:]`)
+
 // montarArvore monta a árvore a partir das linhas já limpas da Fase 1.
 // Linhas antes do primeiro rótulo são ignoradas, e a leitura para no fim
 // do texto normativo (data de assinatura ou cabeçalho do ADCT).
@@ -246,9 +251,18 @@ func montarArvore(linhas []Linha) []*Dispositivo {
 		} else {
 			topo := pilha[len(pilha)-1]
 			nomeDeAgrupador := topo.Tipo.Agrupador() && (topo.Texto == "" || maiusculas(linha))
-			if l.Negrito && !nomeDeAgrupador {
+			switch {
+			case l.Negrito && !nomeDeAgrupador:
 				rubrica = juntar(rubrica, linha)
-			} else {
+			case rePena.MatchString(linha):
+				// A pena fecha o artigo ou parágrafo: o que estiver aberto
+				// abaixo dele (incisos, alíneas) é fechado também.
+				for len(pilha) > 1 && pilha[len(pilha)-1].Tipo > Paragrafo {
+					pilha = pilha[:len(pilha)-1]
+				}
+				topo = pilha[len(pilha)-1]
+				topo.Texto = juntar(topo.Texto, linha)
+			default:
 				topo.Texto = juntar(topo.Texto, linha)
 			}
 		}

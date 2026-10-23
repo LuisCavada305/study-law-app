@@ -485,6 +485,29 @@ Capítulo II
 `,
 		},
 		{
+			// A pena (preceito secundário) é do artigo ou do parágrafo, não do
+			// último inciso: no CP, "Pena - reclusão…" vem depois do inciso V
+			// do § 2º do art. 121 e vale para o § 2º inteiro.
+			nome: "pena volta ao parágrafo",
+			linhas: []string{
+				"Art. 121. Matar alguem:",
+				"Pena - reclusão, de seis a vinte anos.",
+				"§ 2° Se o homicídio é cometido:",
+				"I - mediante paga;",
+				"V - para assegurar a execução de outro crime:",
+				"Pena - reclusão, de doze a trinta anos.",
+				"§ 3º Se o homicídio é culposo:",
+				"Pena – detenção, de um a três anos.",
+			},
+			esperado: `
+Artigo 121: Matar alguem: Pena - reclusão, de seis a vinte anos.
+  Parágrafo 2: Se o homicídio é cometido: Pena - reclusão, de doze a trinta anos.
+    Inciso I: mediante paga;
+    Inciso V: para assegurar a execução de outro crime:
+  Parágrafo 3: Se o homicídio é culposo: Pena – detenção, de um a três anos.
+`,
+		},
+		{
 			// Vetado é como revogado: sem texto depois de tirar as anotações.
 			nome: "vetados",
 			linhas: []string{
