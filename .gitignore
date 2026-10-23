@@ -6,3 +6,5 @@
 *.db
 *.db-wal
 *.db-shm
+# recursos do Windows gerados pelo go-winres (make windows)
+*.syso

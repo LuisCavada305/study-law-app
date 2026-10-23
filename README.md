@@ -14,6 +14,15 @@ Requer Go 1.26+ e Node 22+.
 make run          # compila tudo e abre em http://127.0.0.1:8080
 ```
 
+App desktop para Windows (janela própria, um `.exe` só, feito com Wails):
+
+```bash
+make windows      # gera bin/LeiSeca.exe; o banco fica em %AppData%\LeiSeca
+```
+
+O ícone vem de `build/icon.png` (o mesmo § do favicon); a configuração dos
+recursos do Windows está em `build/winres.json`.
+
 Em desenvolvimento, com recarga automática do frontend:
 
 ```bash
@@ -40,6 +49,7 @@ O servidor escuta só em `127.0.0.1` porque a API não tem login. Opções:
 | `internal/banco` | SQLite (Go puro, sem cgo): leis, cards e histórico |
 | `internal/api` | API JSON (`net/http`); as rotas estão no comentário do pacote |
 | `cmd/leiseca-server` | Servidor da API e do build do frontend |
+| `cmd/leiseca-desktop` | App desktop (Wails) com o frontend embutido e a API no mesmo processo |
 | `cmd/leiseca-parse` | CLI do parser: `go run ./cmd/leiseca-parse [-json] <url ou arquivo>` |
 | `frontend` | React + Vite + TypeScript |
 

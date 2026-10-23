@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: dev-api dev-web build run test
+.PHONY: dev-api dev-web build run test windows
 
 # Desenvolvimento: rode os dois em terminais separados e abra http://localhost:5173
 dev-api:
@@ -19,6 +19,17 @@ run: build
 	./bin/leiseca-server
 
 test:
+	cd frontend && npm run build  # o go:embed de frontend/ precisa do dist
 	go vet ./...
 	go test ./...
 	cd frontend && npm test
+
+# App desktop para Windows (Wails): um .exe só, com o frontend embutido.
+# Compila daqui mesmo, sem cgo; no Windows usa o WebView2 que já vem no sistema.
+windows:
+	cd frontend && npm ci && npm run build
+	# ícone (ID 3, o que o Wails procura), manifesto de DPI e versão
+	go run github.com/tc-hib/go-winres@v0.3.3 make --in build/winres.json \
+		--out cmd/leiseca-desktop/rsrc --arch amd64
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -tags desktop,production \
+		-ldflags "-s -w -H windowsgui" -o bin/LeiSeca.exe ./cmd/leiseca-desktop
