@@ -54,6 +54,11 @@ func (t Tipo) String() string {
 	}
 }
 
+// MarshalText faz o tipo aparecer pelo nome no JSON ("Artigo", não 7).
+func (t Tipo) MarshalText() ([]byte, error) {
+	return []byte(t.String()), nil
+}
+
 // Agrupador informa se t é um agrupador (de Parte a Subsecao), isto é,
 // um título de organização sem texto normativo, que não gera cards.
 func (t Tipo) Agrupador() bool {
@@ -63,24 +68,33 @@ func (t Tipo) Agrupador() bool {
 // Dispositivo é um nó da árvore da lei: um agrupador ou um dispositivo
 // normativo. Texto riscado no original nunca chega até aqui.
 type Dispositivo struct {
-	Tipo Tipo
+	Tipo Tipo `json:"tipo"`
 
 	// Rotulo é o identificador normalizado, sem "Art.", "§" nem "º":
 	// "5", "121-A", "unico" (parágrafo único), "II", "a", "especial".
-	Rotulo string
+	Rotulo string `json:"rotulo"`
 
 	// Texto é o conteúdo sem o rótulo e sem as anotações. Para agrupadores,
 	// é o nome do bloco ("Dos crimes contra a pessoa").
-	Texto string
+	Texto string `json:"texto,omitempty"`
+
+	// Rubrica é o título em negrito que o CP põe antes de alguns
+	// dispositivos ("Homicídio qualificado" antes do § 2º do art. 121),
+	// sem anotações. Vazia quando não há.
+	Rubrica string `json:"rubrica,omitempty"`
 
 	// Revogado marca o dispositivo revogado que aparece sem riscado,
 	// como "Art. 187. (Revogado pela Lei nº 9.279, de 1996)".
-	Revogado bool
+	Revogado bool `json:"revogado,omitempty"`
+
+	// Vetado marca o dispositivo vetado, que nunca entrou em vigor:
+	// "Art. 359-O. (VETADO)". Como o revogado, não gera card.
+	Vetado bool `json:"vetado,omitempty"`
 
 	// Anotacoes guarda as notas do original, como "(Redação dada pela
 	// Lei nº …)", na ordem em que aparecem. Elas não fazem parte de Texto.
-	Anotacoes []string
+	Anotacoes []string `json:"anotacoes,omitempty"`
 
 	// Filhos são os dispositivos contidos neste, na ordem do texto.
-	Filhos []*Dispositivo
+	Filhos []*Dispositivo `json:"filhos,omitempty"`
 }

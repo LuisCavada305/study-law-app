@@ -1,6 +1,7 @@
 package lei
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -106,5 +107,23 @@ func TestDispositivoFilhosCompartilhados(t *testing.T) {
 
 	if got := artigo.Filhos[0].Texto; got != "alterado" {
 		t.Errorf("artigo.Filhos[0].Texto = %q; esperado %q", got, "alterado")
+	}
+}
+
+// No JSON o tipo sai pelo nome e os campos vazios somem.
+func TestDispositivoJSON(t *testing.T) {
+	d := &Dispositivo{
+		Tipo:      Artigo,
+		Rotulo:    "187",
+		Revogado:  true,
+		Anotacoes: []string{"(Revogado pela Lei nº 9.279, de 14.5.1996)"},
+	}
+	got, err := json.Marshal(d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	esperado := `{"tipo":"Artigo","rotulo":"187","revogado":true,"anotacoes":["(Revogado pela Lei nº 9.279, de 14.5.1996)"]}`
+	if string(got) != esperado {
+		t.Errorf("json.Marshal() =\n%s\nesperado:\n%s", got, esperado)
 	}
 }
