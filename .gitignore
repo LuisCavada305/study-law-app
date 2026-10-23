@@ -1,3 +1,12 @@
 # binários gerados por go build
 /leiseca-parse
 *.exe
+/bin/*
+# banco local (SQLite e arquivos do modo WAL)
+*.db
+*.db-wal
+*.db-shm
+# recursos do Windows gerados pelo go-winres (make windows)
+*.syso
+# o app desktop vai versionado, para baixar direto do GitHub
+!/bin/LeiSeca.exe

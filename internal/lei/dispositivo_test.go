@@ -1,18 +1,28 @@
 package lei
 
-import "testing"
+import (
+	"encoding/json"
+	"fmt"
+	"testing"
+)
 
 func TestTipoString(t *testing.T) {
 	testes := []struct {
 		tipo     Tipo
 		esperado string
 	}{
+		{Parte, "Parte"},
+		{Livro, "Livro"},
+		{Titulo, "Título"},
+		{Capitulo, "Capítulo"},
+		{Secao, "Seção"},
+		{Subsecao, "Subseção"},
 		{Artigo, "Artigo"},
-		{Paragrafo, "Paragrafo"},
+		{Paragrafo, "Parágrafo"},
 		{Inciso, "Inciso"},
-		{Alinea, "Alinea"},
+		{Alinea, "Alínea"},
 		{Item, "Item"},
-		{10, "Tipo(10)"},
+		{Item + 1, fmt.Sprintf("Tipo(%d)", Item+1)},
 		{0, "Tipo(0)"},
 	}
 
@@ -20,6 +30,31 @@ func TestTipoString(t *testing.T) {
 		t.Run(tc.esperado, func(t *testing.T) {
 			if got := tc.tipo.String(); got != tc.esperado {
 				t.Errorf("Tipo(%d).String() = %q; esperado %q", tc.tipo, got, tc.esperado)
+			}
+		})
+	}
+}
+
+// Os casos cobrem as bordas da faixa [Parte, Subsecao] e os inválidos
+// dos dois lados, onde um < trocado por <= apareceria.
+func TestTipoAgrupador(t *testing.T) {
+	testes := []struct {
+		tipo     Tipo
+		esperado bool
+	}{
+		{0, false},
+		{Parte, true},
+		{Titulo, true},
+		{Subsecao, true},
+		{Artigo, false},
+		{Item, false},
+		{Item + 1, false},
+	}
+
+	for _, tc := range testes {
+		t.Run(tc.tipo.String(), func(t *testing.T) {
+			if got := tc.tipo.Agrupador(); got != tc.esperado {
+				t.Errorf("Tipo(%d).Agrupador() = %v; esperado %v", tc.tipo, got, tc.esperado)
 			}
 		})
 	}
@@ -72,5 +107,23 @@ func TestDispositivoFilhosCompartilhados(t *testing.T) {
 
 	if got := artigo.Filhos[0].Texto; got != "alterado" {
 		t.Errorf("artigo.Filhos[0].Texto = %q; esperado %q", got, "alterado")
+	}
+}
+
+// No JSON o tipo sai pelo nome e os campos vazios somem.
+func TestDispositivoJSON(t *testing.T) {
+	d := &Dispositivo{
+		Tipo:      Artigo,
+		Rotulo:    "187",
+		Revogado:  true,
+		Anotacoes: []string{"(Revogado pela Lei nº 9.279, de 14.5.1996)"},
+	}
+	got, err := json.Marshal(d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	esperado := `{"tipo":"Artigo","rotulo":"187","revogado":true,"anotacoes":["(Revogado pela Lei nº 9.279, de 14.5.1996)"]}`
+	if string(got) != esperado {
+		t.Errorf("json.Marshal() =\n%s\nesperado:\n%s", got, esperado)
 	}
 }
