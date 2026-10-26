@@ -72,9 +72,18 @@ const cabecalhoADCT = "ATO DAS DISPOSIÇÕES CONSTITUCIONAIS TRANSITÓRIAS"
 // dele vêm assinaturas e avisos, que não são texto normativo.
 var reDataAssinatura = regexp.MustCompile(`^\p{Lu}[\p{L} ]*, (?:em )?\d{1,2}[º°o]? de \p{Ll}+ de \d{4}\b`)
 
-// fimDoTexto informa se a linha encerra o texto normativo.
-func fimDoTexto(linha string) bool {
-	return strings.EqualFold(linha, cabecalhoADCT) || reDataAssinatura.MatchString(linha)
+// recomeca informa se d abre uma numeração nova: "Art. 1º" ou o primeiro
+// agrupador ("TÍTULO I", "PARTE GERAL"). Depois do fecho, é o sinal de que
+// o que veio antes era só o decreto que aprova um código anexo, como na
+// CLT (Decreto-Lei nº 5.452, de 1943).
+func recomeca(d Dispositivo) bool {
+	switch {
+	case d.Tipo == Artigo:
+		return d.Rotulo == "1"
+	case d.Tipo.Agrupador():
+		return d.Rotulo == "I" || d.Rotulo == "geral"
+	}
+	return false
 }
 
 // reAnotacao casa o conteúdo de um parêntese que é nota do Planalto, não
@@ -205,8 +214,10 @@ func maiusculas(s string) bool {
 var rePena = regexp.MustCompile(`^Pena\s*[-–:]`)
 
 // montarArvore monta a árvore a partir das linhas já limpas da Fase 1.
-// Linhas antes do primeiro rótulo são ignoradas, e a leitura para no fim
-// do texto normativo (data de assinatura ou cabeçalho do ADCT).
+// Linhas antes do primeiro rótulo são ignoradas, e a leitura para no
+// cabeçalho do ADCT. A data de assinatura também encerra o texto, a menos
+// que depois dela a numeração recomece (veja recomeca): aí o que foi lido
+// era o decreto de aprovação, que é descartado em favor do código anexo.
 //
 // Linha sem rótulo continua o texto do nó aberto, com duas exceções para
 // linhas em negrito: a primeira linha depois de um agrupador é sempre o seu
@@ -217,14 +228,25 @@ func montarArvore(linhas []Linha) []*Dispositivo {
 	var raiz = []*Dispositivo{}
 	var pilha = []*Dispositivo{}
 	var rubrica string // à espera do próximo dispositivo
+	var assinada bool  // passou do fecho; só um novo começo reabre a leitura
 
 	for _, l := range linhas {
 		linha := l.Texto
-		if len(raiz) > 0 && fimDoTexto(linha) {
+		if len(raiz) > 0 && strings.EqualFold(linha, cabecalhoADCT) {
 			break
+		}
+		if len(raiz) > 0 && reDataAssinatura.MatchString(linha) {
+			assinada = true
+			continue
 		}
 
 		d, valido := separarRotulo(linha)
+		if assinada {
+			if !valido || !recomeca(d) {
+				continue
+			}
+			raiz, pilha, rubrica, assinada = []*Dispositivo{}, nil, "", false
+		}
 		if !valido && len(raiz) == 0 {
 			continue
 		}

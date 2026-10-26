@@ -429,6 +429,47 @@ Artigo 361: Este Código entrará em vigor no dia 1º de janeiro de 1942.
 `,
 		},
 		{
+			// A página da CLT é o decreto-lei que aprova a Consolidação,
+			// com fecho próprio; a CLT vem depois e recomeça no Art. 1º.
+			// O decreto é descartado e a árvore é a do anexo.
+			nome: "decreto que aprova a CLT",
+			linhas: []string{
+				"DECRETA:",
+				"Art. 1º Fica aprovada a Consolidação das Leis do Trabalho, que a este decreto-lei acompanha.",
+				"Parágrafo único. Continuam em vigor as disposições legais transitórias.",
+				"Art. 2º O presente decreto-lei entrará em vigor em 10 de novembro de 1943.",
+				"Rio de Janeiro, 1 de maio de 1943, 122º da Independência e 55º da República.",
+				"GETÚLIO VARGAS",
+				"Este texto não substitui o publicado no DOU de 9.8.1943",
+				"CONSOLIDAÇÃO DAS LEIS DO TRABALHO",
+				"TÍTULO I",
+				"INTRODUÇÃO",
+				"Art. 1º - Esta Consolidação estatui as normas que regulam as relações individuais e coletivas de trabalho.",
+				"Art. 2º - Considera-se empregador a empresa, individual ou coletiva.",
+				"§ 1º - Equiparam-se ao empregador os profissionais liberais.",
+			},
+			esperado: `
+Título I: INTRODUÇÃO
+  Artigo 1: Esta Consolidação estatui as normas que regulam as relações individuais e coletivas de trabalho.
+  Artigo 2: Considera-se empregador a empresa, individual ou coletiva.
+    Parágrafo 1: Equiparam-se ao empregador os profissionais liberais.
+`,
+		},
+		{
+			// Depois do fecho, só um novo começo reabre a leitura: rótulos
+			// soltos em avisos ou anexos não entram.
+			nome: "rótulo depois do fecho sem recomeço",
+			linhas: []string{
+				"Art. 10. Esta Lei entra em vigor na data de sua publicação.",
+				"Brasília, 10 de janeiro de 2002; 181º da Independência e 114º da República.",
+				"Art. 5º citado no anexo.",
+				"TÍTULO II",
+			},
+			esperado: `
+Artigo 10: Esta Lei entra em vigor na data de sua publicação.
+`,
+		},
+		{
 			// Rubrica (negrito, sem rótulo) vai para o próximo dispositivo,
 			// sem a anotação. O nome do agrupador também é negrito: a primeira
 			// linha depois do rótulo é sempre o nome, e linha em maiúsculas
