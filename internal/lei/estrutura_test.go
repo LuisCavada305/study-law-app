@@ -65,6 +65,34 @@ func TestSepararRotulo(t *testing.T) {
 		{linha: "CAPITULO II", tipo: Capitulo, rotulo: "II", texto: "", ok: true}, // sem acento, em textos antigos
 		{linha: "CAPÍTULO I - DOS CRIMES CONTRA A VIDA", tipo: Capitulo, rotulo: "I", texto: "DOS CRIMES CONTRA A VIDA", ok: true},
 
+		// Variações da CLT e do CC: sem espaço ou com ponto solto depois de
+		// "Art.", letra sem hífen, milhar sem ponto e sufixo depois de espaço.
+		{linha: "Art.194 - O direito do empregado", tipo: Artigo, rotulo: "194", texto: "O direito do empregado", ok: true},
+		{linha: "Art. . 189 - Serão consideradas", tipo: Artigo, rotulo: "189", texto: "Serão consideradas", ok: true},
+		{linha: "Art. 401A. (VETADO)", tipo: Artigo, rotulo: "401-A", texto: "(VETADO)", ok: true},
+		{linha: "Art. 1337. O condômino", tipo: Artigo, rotulo: "1337", texto: "O condômino", ok: true},
+		{linha: "Art. 1.337. O condômino", tipo: Artigo, rotulo: "1337", texto: "O condômino", ok: true},
+		{linha: "§ 2o -A. O prazo máximo", tipo: Paragrafo, rotulo: "2-A", texto: "O prazo máximo", ok: true},
+		{linha: "§ 2º - A pessoa", tipo: Paragrafo, rotulo: "2", texto: "A pessoa", ok: true},
+
+		// Agrupadores em caixa mista, com sufixo, com o nome na mesma linha
+		// e com rótulos por extenso.
+		{linha: "TÍTULO II-A", tipo: Titulo, rotulo: "II-A", texto: "", ok: true},
+		{linha: "Título I", tipo: Titulo, rotulo: "I", texto: "", ok: true},
+		{linha: "TíTULO VI", tipo: Titulo, rotulo: "VI", texto: "", ok: true},
+		{linha: "Capítulo IV", tipo: Capitulo, rotulo: "IV", texto: "", ok: true},
+		{linha: "CAPÍTULO I DA PERSONALIDADE E DA CAPACIDADE", tipo: Capitulo, rotulo: "I", texto: "DA PERSONALIDADE E DA CAPACIDADE", ok: true},
+		{linha: "Seção I Da Curadoria dos Bens do Ausente", tipo: Secao, rotulo: "I", texto: "Da Curadoria dos Bens do Ausente", ok: true},
+		{linha: "SUBTÍTULO II", tipo: Subtitulo, rotulo: "II", texto: "", ok: true},
+		{linha: "Capítulo Único", tipo: Capitulo, rotulo: "unico", texto: "", ok: true},
+		{linha: "Seção Única Da Caracterização", tipo: Secao, rotulo: "unico", texto: "Da Caracterização", ok: true},
+		{linha: "LIVRO PRIMEIRO", tipo: Livro, rotulo: "I", texto: "", ok: true},
+		{linha: "LIVRO SEGUNDO", tipo: Livro, rotulo: "II", texto: "", ok: true},
+		{linha: "LIVRO COMPLEMENTAR", tipo: Livro, rotulo: "complementar", texto: "", ok: true},
+		{linha: "P A R T E G E R A L", tipo: Parte, rotulo: "geral", texto: "", ok: true},
+		{linha: "Parte Especial", tipo: Parte, rotulo: "especial", texto: "", ok: true},
+		{linha: "SECÇÃO I", tipo: Secao, rotulo: "I", texto: "", ok: true},
+
 		// Não são rótulos.
 		{linha: "", ok: false},
 		{linha: "nos termos do art. 3º", ok: false},
@@ -75,6 +103,8 @@ func TestSepararRotulo(t *testing.T) {
 		{linha: "DOS CRIMES CONTRA A VIDA", ok: false},          // nome de agrupador, não rótulo
 		{linha: "Título II desta Lei", ok: false},               // remissão, não agrupador
 		{linha: "Seção I deste Capítulo", ok: false},
+		{linha: "Capítulo único desta Lei", ok: false},
+		{linha: "Artigo 5º da Constituição", ok: false},
 		{linha: "Incumbe (nos termos da lei)", ok: false}, // sem separador, o numeral precisa de espaço depois
 		{linha: "CIVIL E MILITAR", ok: false},             // só letras romanas, mas seguido de maiúscula
 	}
@@ -467,6 +497,108 @@ Título I: INTRODUÇÃO
 			},
 			esperado: `
 Artigo 10: Esta Lei entra em vigor na data de sua publicação.
+`,
+		},
+		{
+			// No CC, um índice com os agrupadores vem depois da assinatura.
+			// A numeração recomeça, mas sem artigos: fica o código.
+			nome: "índice depois da assinatura",
+			linhas: []string{
+				"LIVRO I",
+				"DAS PESSOAS",
+				"Art. 1º Toda pessoa é capaz de direitos e deveres na ordem civil.",
+				"Art. 2º A personalidade civil da pessoa começa do nascimento com vida.",
+				"Brasília, 10 de janeiro de 2002; 181º da Independência e 114º da República.",
+				"LIVRO I DAS PESSOAS",
+				"TÍTULO I DAS PESSOAS NATURAIS",
+			},
+			esperado: `
+Livro I: DAS PESSOAS
+  Artigo 1: Toda pessoa é capaz de direitos e deveres na ordem civil.
+  Artigo 2: A personalidade civil da pessoa começa do nascimento com vida.
+`,
+		},
+		{
+			// A CLT acaba no art. 922, sem data de assinatura: o cabeçalho
+			// do anexo (quadros e tabelas) encerra o texto.
+			nome: "anexo depois do último artigo",
+			linhas: []string{
+				"Art. 922 - O disposto no art. 301 regerá somente as relações de empregos iniciadas depois da vigência desta Consolidação.",
+				"ANEXO",
+				"Quadro a que se refere o art. 577 da Consolidação das Leis do Trabalho",
+				"CONFEDERAÇÃO NACIONAL DA INDÚSTRIA",
+			},
+			esperado: `
+Artigo 922: O disposto no art. 301 regerá somente as relações de empregos iniciadas depois da vigência desta Consolidação.
+`,
+		},
+		{
+			// O artigo que altera outra lei leva no texto o que cita, até o
+			// próximo artigo desta. O capítulo depois da citação é desta lei.
+			nome: "artigo que altera outra lei",
+			linhas: []string{
+				"Art. 178. O Título XI do Código Penal passa a vigorar acrescido do seguinte Capítulo II-B:",
+				"“CAPÍTULO II-B",
+				"Art. 337-E. Admitir a contratação direta fora das hipóteses previstas em lei:",
+				"Pena - reclusão, de 4 (quatro) a 8 (oito) anos, e multa.",
+				"§ 1º Incorre na mesma pena quem.”",
+				"CAPÍTULO III",
+				"DAS DISPOSIÇÕES FINAIS",
+				"Art. 179. Esta Lei entra em vigor na data de sua publicação.",
+			},
+			esperado: `
+Artigo 178: O Título XI do Código Penal passa a vigorar acrescido do seguinte Capítulo II-B: “CAPÍTULO II-B Art. 337-E. Admitir a contratação direta fora das hipóteses previstas em lei: Pena - reclusão, de 4 (quatro) a 8 (oito) anos, e multa. § 1º Incorre na mesma pena quem.”
+Capítulo III: DAS DISPOSIÇÕES FINAIS
+  Artigo 179: Esta Lei entra em vigor na data de sua publicação.
+`,
+		},
+		{
+			// Sem citação depois da fórmula, o artigo seguinte é desta lei.
+			nome: "fórmula de alteração sem citação",
+			linhas: []string{
+				"Art. 10. O art. 5º da Lei nº 1.000 passa a vigorar com a seguinte redação:",
+				"Art. 11. Esta Lei entra em vigor na data de sua publicação.",
+				"§ 1º Parágrafo do art. 11.",
+			},
+			esperado: `
+Artigo 10: O art. 5º da Lei nº 1.000 passa a vigorar com a seguinte redação:
+Artigo 11: Esta Lei entra em vigor na data de sua publicação.
+  Parágrafo 1: Parágrafo do art. 11.
+`,
+		},
+		{
+			// "Parágrafo único." deixado na linha do caput (CLT, art. 625-A),
+			// o selo "Vigência encerrada" das MPs caducadas e o dispositivo
+			// repetido sem riscado (CLT, art. 153).
+			nome: "defeitos do original",
+			linhas: []string{
+				"Art. 625-A. As empresas podem instituir Comissões de Conciliação Prévia. Parágrafo único. As Comissões poderão ser constituídas por grupos de empresas.",
+				"Art. 153 - As infrações serão punidas com multa. (Redação dada pela Lei nº 7.855, de 24.10.1989)",
+				"Parágrafo único - Em caso de reincidência, a multa será aplicada em dobro. (Redação dada pela Lei nº 7.855, de 24.10.1989) Vigência encerrada",
+				"Parágrafo único - Em caso de reincidência, a multa será aplicada em dobro. (Redação dada pela Lei nº 7.855, de 24.10.1989)",
+			},
+			esperado: `
+Artigo 625-A: As empresas podem instituir Comissões de Conciliação Prévia.
+  Parágrafo unico: As Comissões poderão ser constituídas por grupos de empresas.
+Artigo 153: As infrações serão punidas com multa.
+  nota: (Redação dada pela Lei nº 7.855, de 24.10.1989)
+  Parágrafo unico: Em caso de reincidência, a multa será aplicada em dobro.
+    nota: (Redação dada pela Lei nº 7.855, de 24.10.1989)
+    nota: (Vigência encerrada)
+`,
+		},
+		{
+			// Cabeçalho repetido no original (Lei 8.112): vale um só.
+			nome: "agrupador repetido",
+			linhas: []string{
+				"Subseção IV",
+				"Subseção IV",
+				"Do Auxílio-Moradia",
+				"Art. 60-A. O auxílio-moradia consiste no ressarcimento das despesas.",
+			},
+			esperado: `
+Subseção IV: Do Auxílio-Moradia
+  Artigo 60-A: O auxílio-moradia consiste no ressarcimento das despesas.
 `,
 		},
 		{

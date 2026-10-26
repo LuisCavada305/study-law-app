@@ -43,6 +43,12 @@ export function rotuloNaLei(tipo: Tipo, rotulo: string): string {
       return `${rotulo}.`
     case 'Parte':
       return `Parte ${rotulo.charAt(0).toUpperCase()}${rotulo.slice(1)}`
+  }
+  switch (rotulo) {
+    case 'unico':
+      return tipo === 'Seção' || tipo === 'Subseção' ? `${tipo} Única` : `${tipo} Único`
+    case 'complementar':
+      return `${tipo} Complementar`
     default:
       return `${tipo} ${rotulo}`
   }
@@ -50,5 +56,5 @@ export function rotuloNaLei(tipo: Tipo, rotulo: string): string {
 
 /** Agrupadores organizam a lei e não têm texto normativo. */
 export function ehAgrupador(tipo: Tipo): boolean {
-  return ['Parte', 'Livro', 'Título', 'Capítulo', 'Seção', 'Subseção'].includes(tipo)
+  return ['Parte', 'Livro', 'Título', 'Subtítulo', 'Capítulo', 'Seção', 'Subseção'].includes(tipo)
 }

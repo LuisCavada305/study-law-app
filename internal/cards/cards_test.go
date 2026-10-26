@@ -24,6 +24,10 @@ func TestCitar(t *testing.T) {
 		{lei.Alinea, "a", "alínea a"},
 		{lei.Parte, "especial", "Parte Especial"},
 		{lei.Titulo, "II", "Título II"},
+		{lei.Subtitulo, "I", "Subtítulo I"},
+		{lei.Capitulo, "unico", "Capítulo Único"},
+		{lei.Secao, "unico", "Seção Única"},
+		{lei.Livro, "complementar", "Livro Complementar"},
 	}
 	for _, tc := range testes {
 		if got := Citar(tc.tipo, tc.rotulo); got != tc.esperado {
