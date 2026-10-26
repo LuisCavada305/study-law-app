@@ -4,6 +4,7 @@ export type Tipo =
   | 'Parte'
   | 'Livro'
   | 'Título'
+  | 'Subtítulo'
   | 'Capítulo'
   | 'Seção'
   | 'Subseção'

@@ -14,6 +14,7 @@ func TestTipoString(t *testing.T) {
 		{Parte, "Parte"},
 		{Livro, "Livro"},
 		{Titulo, "Título"},
+		{Subtitulo, "Subtítulo"},
 		{Capitulo, "Capítulo"},
 		{Secao, "Seção"},
 		{Subsecao, "Subseção"},

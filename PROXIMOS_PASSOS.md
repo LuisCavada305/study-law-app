@@ -1,6 +1,6 @@
 # Próximos passos
 
-Última sessão: 22/10/2026.
+Última sessão: 26/10/2026.
 
 ## Já feito
 - Esqueleto do módulo (`cmd/leiseca-parse`, `internal/lei`, `internal/planalto`)
@@ -44,13 +44,47 @@ Decisões (o Luis deixou a meu critério):
 
 Testado com o site real: CF = 2613 cards, CP = 1310 cards.
 
+## Marco 3 em 26/10/2026 — parser para as leis principais
+
+Testado com o site real (fixtures em `internal/lei/testdata/*.html.gz`, `TestParseLeis`):
+
+| Lei | Artigos | Cards | Padrões novos |
+|---|---|---|---|
+| CLT (del5452) | 847 | 2676 | decreto de aprovação antes; `ANEXO` sem fecho; `Art.194`, `Art. . 189`, `Art. 401A.`; `TÍTULO II-A`; "Parágrafo único." na linha do caput; selo "Vigência encerrada" (99×); parágrafo repetido sem riscado |
+| CC (l10406) | 2083 | 3813 | `P A R T E G E R A L`; `SUBTÍTULO`; `Art. 1337` sem ponto; nome na linha do rótulo (`CAPÍTULO I DA …`); `LIVRO COMPLEMENTAR`; índice depois da assinatura |
+| CPC (l13105) | 1073 | 3893 | artigos finais que alteram outras leis |
+| CPP (del3689) | 846 | 2054 | — |
+| CTN (l5172) | 231 | 778 | `LIVRO PRIMEIRO` por extenso |
+| ECA (l8069) | 327 | 1237 | `Título I` em caixa mista; `§ 2o -A.`; art. 263 cita o CP |
+| Lei 8.112 | 247 | 807 | `Capítulo Único`; `Subseção IV` repetida |
+| Lei 14.133 | 196 | 1412 | art. 178 acrescenta os arts. 337-E a 337-P ao CP |
+| CDC, LINDB, Lei 8.429 | 130, 30, 31 | 432, 79, 218 | — |
+
+Regras novas (`estrutura.go`):
+- **Fecho**: a data de assinatura não encerra mais de vez. Se a numeração recomeça
+  (`Art. 1º`, agrupador `I`/`Único`/`Geral`), fica o trecho com mais artigos: o
+  código anexo ao decreto (CLT), não o índice (CC). ADCT e `ANEXO` encerram de vez
+- **Citação**: artigo que termina com fórmula de alteração ("passa a vigorar…:",
+  "acrescido do seguinte…:") leva no texto as linhas seguintes até o próximo artigo
+  desta lei (mesmo número com sufixo maior, ou até 5 acima). Agrupadores no fim da
+  citação voltam a ser desta lei. `<blockquote>` não serve de sinal: o CP põe nele
+  os arts. 234-A a 234-C, que são dele
+- Agrupadores sem distinção de caixa, nome na mesma linha (se começar com
+  maiúscula), rótulos `unico`, `complementar` e ordinais → romano; tipo `Subtitulo`
+- Irmão idêntico (tipo, rótulo e texto) é descartado
+
+Ficou de fora: buracos na numeração são artigos revogados riscados (somem, como antes);
+os artigos que alteram outras leis viram cards longos (até ~5 mil caracteres no art.
+178 da 14.133).
+
 ## Ao retomar
 
 Ideias, em ordem de valor:
 1. **Modo lacuna**: esconder palavras-chave do texto ("Matar alguem: Pena - ___, de
    ___ a ___ anos") em vez de recitar tudo
-2. **Mais leis**: testar CPP, CC, CPC, CLT pelo formulário; cada uma deve trazer
-   padrões novos (fazer fixtures como as da CF/CP)
+2. **Mais leis**: CLT, CC, CPC, CPP, CTN, ECA, CDC, 8.112 e 14.133 já testadas (Marco 3).
+   Próximas: Lei de Drogas, Maria da Penha, LEP, Estatuto do Idoso, 9.099; rodar o
+   `-json` e conferir artigos, buracos e duplicados como no Marco 3
 3. **Estatísticas**: a tabela `revisoes` já tem o histórico (acertos por lei, dias seguidos)
 4. **Busca** na leitura e "estudar este artigo agora" a partir dela
 5. **Deploy** (VPS ou Docker, como no ROTA): precisa de login antes de abrir para a rede

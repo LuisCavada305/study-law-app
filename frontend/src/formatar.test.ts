@@ -28,6 +28,10 @@ describe('rotuloNaLei', () => {
     ['Alínea', 'a', 'a)'],
     ['Parte', 'especial', 'Parte Especial'],
     ['Título', 'II', 'Título II'],
+    ['Subtítulo', 'I', 'Subtítulo I'],
+    ['Capítulo', 'unico', 'Capítulo Único'],
+    ['Seção', 'unico', 'Seção Única'],
+    ['Livro', 'complementar', 'Livro Complementar'],
   ] as const)('%s %s → %s', (tipo, rotulo, esperado) => {
     expect(rotuloNaLei(tipo, rotulo)).toBe(esperado)
   })

@@ -128,7 +128,7 @@ var prefixoChave = map[lei.Tipo]string{
 
 // Citar escreve o rótulo como ele é citado: "Art. 5º", "Art. 121-A",
 // "§ 1º", "Parágrafo único", "inciso IV", "alínea a", "Título II",
-// "Parte Especial".
+// "Parte Especial", "Capítulo Único", "Seção Única", "Livro Complementar".
 func Citar(t lei.Tipo, rotulo string) string {
 	switch t {
 	case lei.Artigo:
@@ -146,6 +146,15 @@ func Citar(t lei.Tipo, rotulo string) string {
 		return "item " + rotulo
 	case lei.Parte:
 		return "Parte " + strings.ToUpper(rotulo[:1]) + rotulo[1:]
+	}
+	switch rotulo {
+	case "unico":
+		if t == lei.Secao || t == lei.Subsecao {
+			return t.String() + " Única"
+		}
+		return t.String() + " Único"
+	case "complementar":
+		return t.String() + " Complementar"
 	default:
 		return t.String() + " " + rotulo
 	}

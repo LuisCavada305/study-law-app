@@ -1,5 +1,5 @@
 // Package lei transforma o texto de uma lei na árvore de dispositivos:
-// agrupadores (parte, livro, título, capítulo, seção, subseção) e
+// agrupadores (parte, livro, título, subtítulo, capítulo, seção, subseção) e
 // dispositivos (artigo, parágrafo, inciso, alínea, item).
 package lei
 
@@ -14,6 +14,7 @@ const (
 	Parte Tipo = iota + 1
 	Livro
 	Titulo
+	Subtitulo // só no CC, entre Título e Capítulo
 	Capitulo
 	Secao
 	Subsecao
@@ -33,6 +34,8 @@ func (t Tipo) String() string {
 		return "Livro"
 	case Titulo:
 		return "Título"
+	case Subtitulo:
+		return "Subtítulo"
 	case Capitulo:
 		return "Capítulo"
 	case Secao:
